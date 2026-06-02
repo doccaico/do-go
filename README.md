@@ -1,6 +1,8 @@
 ### Do (Windows only .-.)
 
 ### Required Softwares
+- busybox64u (iconv)
+- curl
 - git
 - less
 - rg

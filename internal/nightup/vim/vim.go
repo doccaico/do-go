@@ -2,8 +2,6 @@ package vim
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,30 +9,17 @@ import (
 )
 
 // Run はメイン（nightup）から呼び出されるエントリーポイントです
-// 使われていない引数の頭にはアンダースコアを付けて明示しています
 func Run() {
 	// 1. 最新リリースのJSONを取得
-	req, err := http.NewRequest("GET", "https://api.github.com/repos/vim/vim-win32-installer/releases/latest", nil)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	url := "https://api.github.com/repos/vim/vim-win32-installer/releases/latest"
+	cmd := exec.Command("curl", "-sSL", "-A", "Mozilla/5.0", url)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	output, err := cmd.Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	contents := string(bodyBytes)
+	contents := string(output)
 	fmt.Println("Download (json) is done")
 
 	// 2. 正規表現でインストーラー（.exe）のダウンロードURLを抽出
@@ -60,45 +45,20 @@ func Run() {
 	}
 	userDownloadDir := filepath.Join(homeDir, "Downloads")
 
-	// 4. URLの末尾からファイル名（gvim_xxxx_x64_signed.exe）を抽出して保存先パスを作る
-	fileName := filepath.Base(downloadUrl)
-	localExePath := filepath.Join(userDownloadDir, fileName)
+	// 4. curl を使ってインストーラーをダウンロード (net/http を完全排除)
+	// -fsSOL オプションを使用して、リモート名に合わせたファイル名で安全に保存します
+	exeCmd := exec.Command("curl", "-fsSOL", "-A", "Mozilla/5.0", downloadUrl)
+	exeCmd.Dir = userDownloadDir // ユーザーの Downloads フォルダに cd してから実行
+	exeCmd.Stdout = os.Stdout
+	exeCmd.Stderr = os.Stderr
 
-	// 5. インストーラーをダウンロード
-	exeReq, err := http.NewRequest("GET", downloadUrl, nil)
-	if err != nil {
+	if err := exeCmd.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	exeReq.Header.Set("User-Agent", "Mozilla/5.0")
-
-	exeResp, err := client.Do(exeReq)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	defer exeResp.Body.Close()
-
-	if exeResp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "download failed with status: %s\n", exeResp.Status)
-		os.Exit(1)
-	}
-
-	out, err := os.Create(localExePath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	if _, err = io.Copy(out, exeResp.Body); err != nil {
-		out.Close()
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	out.Close()
 	fmt.Println("Download (ZIP) is done")
 
-	// 6. 外部コマンド cmd /C start explorer . の実行
+	// 5. 外部コマンド cmd /C start explorer . の実行
 	// ダウンロードしたディレクトリを基点にしてエクスプローラーを開きます
 	explorerCmd := exec.Command("cmd", "/C", "start", "explorer", ".")
 	explorerCmd.Dir = userDownloadDir

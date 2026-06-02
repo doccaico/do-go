@@ -2,8 +2,8 @@ package ziglang
 
 import (
 	"fmt"
-	"io"
-	"net/http"
+	// "io"
+	// "net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,27 +13,15 @@ import (
 // Run はメイン（nightup）から呼び出されるエントリーポイントです
 func Run(distDir, downloadDir string) {
 	// 1. 最新バージョンのJSONを取得
-	req, err := http.NewRequest("GET", "https://ziglang.org/download/index.json", nil)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	url := "https://ziglang.org/download/index.json"
+	cmd := exec.Command("curl", "-sSL", "-A", "Mozilla/5.0", url)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	output, err := cmd.Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	contents := string(bodyBytes)
+	contents := string(output)
 	fmt.Println("Download (index.json) is done")
 
 	// 2. 正規表現で master の x86_64-windows 用の URL を抽出
@@ -71,44 +59,19 @@ func Run(distDir, downloadDir string) {
 	fmt.Printf("Created: \"%s\"\n", workDirPath)
 
 	// 4. ZIPファイルのダウンロード
-	zipReq, err := http.NewRequest("GET", downloadUrl, nil)
-	if err != nil {
-		_ = os.RemoveAll(workDirPath)
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	zipReq.Header.Set("User-Agent", "Mozilla/5.0")
-
-	zipResp, err := client.Do(zipReq)
-	if err != nil {
-		_ = os.RemoveAll(workDirPath)
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	defer zipResp.Body.Close()
-
-	if zipResp.StatusCode != http.StatusOK {
-		_ = os.RemoveAll(workDirPath)
-		fmt.Fprintf(os.Stderr, "download failed with status: %s\n", zipResp.Status)
-		os.Exit(1)
-	}
-
 	localZip := "zig-master-latest.zip"
 	localZipPath := filepath.Join(workDirPath, localZip)
-	out, err := os.Create(localZipPath)
-	if err != nil {
-		_ = os.RemoveAll(workDirPath)
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
 
-	if _, err = io.Copy(out, zipResp.Body); err != nil {
+	zipCmd := exec.Command("curl", "-fsSL", "-A", "Mozilla/5.0", downloadUrl, "-o", localZip)
+	zipCmd.Dir = workDirPath // 作業ディレクトリに cd してから実行
+	zipCmd.Stdout = os.Stdout
+	zipCmd.Stderr = os.Stderr
+
+	if err := zipCmd.Run(); err != nil {
 		_ = os.RemoveAll(workDirPath)
-		out.Close()
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	out.Close()
 	fmt.Printf("Download (ZIP) is done: %s\n", localZip)
 
 	// 5. 外部コマンド tar の実行

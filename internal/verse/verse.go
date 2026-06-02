@@ -2,8 +2,6 @@ package verse
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -114,28 +112,15 @@ func Run(args []string) {
 	book, chapter := args[0], args[1]
 	url := fmt.Sprintf("https://bible.com/ja/bible/1819/%s.%s/", book, chapter)
 
-	// 1. HTTPリクエストの送信
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	// 1. Curl
+	cmd := exec.Command("curl", "-sSL", "-A", "Mozilla/5.0", url)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	output, err := cmd.Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	contents := string(bodyBytes)
+	contents := string(output)
 
 	// 2. 正規表現のコンパイルとマッチング
 	// Goのregexpでドット（.）を改行にマッチさせるため、(?s) を使用します

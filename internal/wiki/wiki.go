@@ -2,8 +2,6 @@ package wiki
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -51,28 +49,15 @@ func Run(args []string) {
 		args[0],
 	)
 
-	// 1. HTTPリクエストの送信（curl の代わり）
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	// 1. Curl
+	cmd := exec.Command("curl", "-sSL", "-A", "Mozilla/5.0", url)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	output, err := cmd.Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	responseText := string(bodyBytes)
+	responseText := string(output)
 
 	// 2. 正規表現による ID と Title の抽出
 	// Goのregexpでドット（.）を改行にマッチさせるため、(?s) を使用します

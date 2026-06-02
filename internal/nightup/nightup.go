@@ -18,7 +18,8 @@ Usage:
     do.exe nightup go
     do.exe nightup odin
     do.exe nightup v
-    do.exe nightup zig`
+    do.exe nightup zig
+    do.exe nightup vim`
 
 // Run はメインから呼び出されるエントリーポイントです
 func Run(args []string) {

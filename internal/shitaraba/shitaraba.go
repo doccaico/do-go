@@ -2,16 +2,11 @@ package shitaraba
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"golang.org/x/text/encoding/japanese"
-	"golang.org/x/text/transform"
 )
 
 const helpMsg = `
@@ -43,32 +38,19 @@ func Run(args []string) {
 	genre, id, number := args[0], args[1], args[2]
 	url := fmt.Sprintf("https://jbbs.shitaraba.net/bbs/read.cgi/%s/%s/%s/l50", genre, id, number)
 
-	// 1. HTTPリクエストの送信
-	req, err := http.NewRequest("GET", url, nil)
+	// 1. Curl
+	pipeCmdStr := fmt.Sprintf(`curl -sSL -A "Mozilla/5.0" %s | busybox64u iconv -f EUC-JP -t UTF-8`, url)
+	cmd := exec.Command("cmd", "/C", pipeCmdStr)
+
+	output, err := cmd.Output()
 	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to 'curl and busybox64u iconv'")
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	contents := string(output)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
-
-	// 2. EUC-JP から UTF-8 へのデコード（busybox64u iconv の代わり）
-	utf8Reader := transform.NewReader(resp.Body, japanese.EUCJP.NewDecoder())
-	bodyBytes, err := io.ReadAll(utf8Reader)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	contents := string(bodyBytes)
-
-	// 3. 正規表現のコンパイル
+	// 2. 正規表現のコンパイル
 	re := regexp.MustCompile(`(?s)<dt\b[^>]*?>.+?<b>(.*?)</b>.+?：\s*(.*?)</dt>\s*<dd>(.*?)</dd>`)
 	reEmoji := regexp.MustCompile(`&#(\d+?);`)
 	reTag := regexp.MustCompile(`<[^>]*?>`)
@@ -78,7 +60,7 @@ func Run(args []string) {
 	}
 	var dataList []datum
 
-	// 4. マッチングとデータ構築
+	// 3. マッチングとデータ構築
 	matches := re.FindAllStringSubmatch(contents, -1)
 	for _, match := range matches {
 		name := match[1]
@@ -112,7 +94,7 @@ func Run(args []string) {
 		dataList = append(dataList, datum{name: name, date: date, post: finalPost})
 	}
 
-	// 5. less コマンドの実行準備
+	// 4. less コマンドの実行準備
 	lessCmd := exec.Command("less", "-R", "-i", "--silent")
 
 	lessStdin, err := lessCmd.StdinPipe()
