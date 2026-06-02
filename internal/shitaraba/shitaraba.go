@@ -15,7 +15,7 @@ import (
 )
 
 const helpMsg = `
-Usage:
+USAGE:
     do.exe shitaraba [OPTION] GENRE ID NUMBER
 OPTION:
     -h, --help                 ヘルプメッセージを表示`
@@ -46,14 +46,16 @@ func Run(args []string) {
 	// 1. HTTPリクエストの送信
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
@@ -61,7 +63,8 @@ func Run(args []string) {
 	utf8Reader := transform.NewReader(resp.Body, japanese.EUCJP.NewDecoder())
 	bodyBytes, err := io.ReadAll(utf8Reader)
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	contents := string(bodyBytes)
 
@@ -114,14 +117,16 @@ func Run(args []string) {
 
 	lessStdin, err := lessCmd.StdinPipe()
 	if err != nil {
-		panic(fmt.Sprintf("failed to open stdin: %v", err))
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
 	lessCmd.Stdout = os.Stdout
 	lessCmd.Stderr = os.Stderr
 
 	if err := lessCmd.Start(); err != nil {
-		panic(fmt.Sprintf("failed to spawn 'less': %v", err))
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
 	// lessの標準入力にデータを書き込む
@@ -140,7 +145,7 @@ func Run(args []string) {
 
 	// less の終了を待つ
 	if err := lessCmd.Wait(); err != nil {
-		fmt.Fprintln(os.Stderr, "less exited with an error")
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

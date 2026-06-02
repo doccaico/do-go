@@ -8,7 +8,7 @@ import (
 )
 
 const helpMsg = `
-Usage:
+USAGE:
     do.exe gitup [OPTION] DIR MESSAGE
     do.exe gitup [OPTION]     MESSAGE
 OPTION:

@@ -7,6 +7,7 @@ import (
 	gitup "github.com/doccaico/do-go/internal/gitup"
 	shitaraba "github.com/doccaico/do-go/internal/shitaraba"
 	verse "github.com/doccaico/do-go/internal/verse"
+	wiki "github.com/doccaico/do-go/internal/wiki"
 	"os"
 	// "github.com/doccaico/do-go/internal/nightup"
 )
@@ -53,8 +54,8 @@ func main() {
 		shitaraba.Run(args[2:])
 	case "verse":
 		verse.Run(args[2:])
-	// case "wiki":
-	//     wiki.Run(args[2:])
+	case "wiki":
+		wiki.Run(args[2:])
 	// case "nightup":
 	//     nightup.Run(args[2:])
 	default:
