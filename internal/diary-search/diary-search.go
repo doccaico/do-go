@@ -1,4 +1,4 @@
-package diarysearch
+package diary_search
 
 import (
 	"errors"

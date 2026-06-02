@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/doccaico/do-go/internal/diarysearch"
-	"github.com/doccaico/do-go/internal/gitup"
+	delete_duplicate_path "github.com/doccaico/do-go/internal/delete-duplicate-path"
+	diary_search "github.com/doccaico/do-go/internal/diary-search"
+	gitup "github.com/doccaico/do-go/internal/gitup"
 	"os"
 	// "github.com/doccaico/do-go/internal/nightup"
 )
@@ -41,11 +42,11 @@ func main() {
 	// サブコマンドの判定
 	switch args[1] {
 	case "diary_search":
-		diarysearch.Run(args[2:])
+		diary_search.Run(args[2:])
 	case "gitup":
 		gitup.Run(args[2:])
-	// case "delete_duplicate_path":
-	// 	delete_duplicate_path.Run()
+	case "delete_duplicate_path":
+		delete_duplicate_path.Run()
 	// case "shitaraba":
 	// 	shitaraba.Run(args[2:])
 	// case "verse":
