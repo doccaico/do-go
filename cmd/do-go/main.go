@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/doccaico/do-go/internal/diarysearch"
+	"github.com/doccaico/do-go/internal/gitup"
 	"os"
 	// "github.com/doccaico/do-go/internal/nightup"
 )
@@ -41,8 +42,8 @@ func main() {
 	switch args[1] {
 	case "diary_search":
 		diarysearch.Run(args[2:])
-	// case "gitup":
-	// 	gitup.Run(args[2:])
+	case "gitup":
+		gitup.Run(args[2:])
 	// case "delete_duplicate_path":
 	// 	delete_duplicate_path.Run()
 	// case "shitaraba":
