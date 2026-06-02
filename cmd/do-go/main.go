@@ -5,6 +5,7 @@ import (
 	delete_duplicate_path "github.com/doccaico/do-go/internal/delete-duplicate-path"
 	diary_search "github.com/doccaico/do-go/internal/diary-search"
 	gitup "github.com/doccaico/do-go/internal/gitup"
+	shitaraba "github.com/doccaico/do-go/internal/shitaraba"
 	"os"
 	// "github.com/doccaico/do-go/internal/nightup"
 )
@@ -47,8 +48,8 @@ func main() {
 		gitup.Run(args[2:])
 	case "delete_duplicate_path":
 		delete_duplicate_path.Run()
-	// case "shitaraba":
-	// 	shitaraba.Run(args[2:])
+	case "shitaraba":
+		shitaraba.Run(args[2:])
 	// case "verse":
 	//     verse.Run(args[2:])
 	// case "wiki":
