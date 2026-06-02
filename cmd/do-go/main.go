@@ -6,6 +6,7 @@ import (
 	diary_search "github.com/doccaico/do-go/internal/diary-search"
 	gitup "github.com/doccaico/do-go/internal/gitup"
 	shitaraba "github.com/doccaico/do-go/internal/shitaraba"
+	verse "github.com/doccaico/do-go/internal/verse"
 	"os"
 	// "github.com/doccaico/do-go/internal/nightup"
 )
@@ -50,8 +51,8 @@ func main() {
 		delete_duplicate_path.Run()
 	case "shitaraba":
 		shitaraba.Run(args[2:])
-	// case "verse":
-	//     verse.Run(args[2:])
+	case "verse":
+		verse.Run(args[2:])
 	// case "wiki":
 	//     wiki.Run(args[2:])
 	// case "nightup":

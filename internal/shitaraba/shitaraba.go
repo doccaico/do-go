@@ -43,7 +43,7 @@ func Run(args []string) {
 	genre, id, number := args[0], args[1], args[2]
 	url := fmt.Sprintf("https://jbbs.shitaraba.net/bbs/read.cgi/%s/%s/%s/l50", genre, id, number)
 
-	// 1. HTTPリクエストの送信（curl の代わり）
+	// 1. HTTPリクエストの送信
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
