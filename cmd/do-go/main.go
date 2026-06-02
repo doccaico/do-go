@@ -5,11 +5,11 @@ import (
 	delete_duplicate_path "github.com/doccaico/do-go/internal/delete-duplicate-path"
 	diary_search "github.com/doccaico/do-go/internal/diary-search"
 	gitup "github.com/doccaico/do-go/internal/gitup"
+	nightup "github.com/doccaico/do-go/internal/nightup"
 	shitaraba "github.com/doccaico/do-go/internal/shitaraba"
 	verse "github.com/doccaico/do-go/internal/verse"
 	wiki "github.com/doccaico/do-go/internal/wiki"
 	"os"
-	// "github.com/doccaico/do-go/internal/nightup"
 )
 
 const helpMsg = `
@@ -27,19 +27,16 @@ COMMAND:
     nightup                     ソフトウェアアップデーター`
 
 func main() {
-	// os.Args[0] はプログラム名（do-go.exeなど）が入るため、実引数は os.Args[1:]
 	args := os.Args
 
-	// 引数がない場合
 	if len(args) == 1 {
 		fmt.Fprintln(os.Stderr, helpMsg)
-		os.Exit(1) // Rustの ExitCode::FAILURE 相当
+		os.Exit(1)
 	}
 
-	// ヘルプの判定
 	if len(args) == 2 && (args[1] == "-h" || args[1] == "--help") {
 		fmt.Println(helpMsg)
-		os.Exit(0) // Rustの ExitCode::SUCCESS 相当
+		os.Exit(0)
 	}
 
 	// サブコマンドの判定
@@ -56,12 +53,11 @@ func main() {
 		verse.Run(args[2:])
 	case "wiki":
 		wiki.Run(args[2:])
-	// case "nightup":
-	//     nightup.Run(args[2:])
+	case "nightup":
+		nightup.Run(args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command '%s'\n", args[1])
 		fmt.Fprintln(os.Stderr, helpMsg)
 		os.Exit(1)
 	}
-
 }
