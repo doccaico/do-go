@@ -69,17 +69,10 @@ func Run(distDir, downloadDir string) {
 	}
 	fmt.Printf("Created: \"%s\"\n", workDirPath)
 
-	// 正常移動が完了しなかった時だけフォルダを消すクリーンアップ処理
-	cleanupActive := true
-	defer func() {
-		if cleanupActive {
-			_ = os.RemoveAll(workDirPath)
-		}
-	}()
-
 	// 4. ZIPファイルのダウンロード
 	zipReq, err := http.NewRequest("GET", downloadUrl, nil)
 	if err != nil {
+		_ = os.RemoveAll(workDirPath)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -87,12 +80,14 @@ func Run(distDir, downloadDir string) {
 
 	zipResp, err := client.Do(zipReq)
 	if err != nil {
+		_ = os.RemoveAll(workDirPath)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	defer zipResp.Body.Close()
 
 	if zipResp.StatusCode != http.StatusOK {
+		_ = os.RemoveAll(workDirPath)
 		fmt.Fprintf(os.Stderr, "download failed with status: %s\n", zipResp.Status)
 		os.Exit(1)
 	}
@@ -101,11 +96,13 @@ func Run(distDir, downloadDir string) {
 	localZipPath := filepath.Join(workDirPath, localZip)
 	out, err := os.Create(localZipPath)
 	if err != nil {
+		_ = os.RemoveAll(workDirPath)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
 	if _, err = io.Copy(out, zipResp.Body); err != nil {
+		_ = os.RemoveAll(workDirPath)
 		out.Close()
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -120,6 +117,7 @@ func Run(distDir, downloadDir string) {
 	tarCmd.Stderr = os.Stderr
 
 	if err := tarCmd.Run(); err != nil {
+		_ = os.RemoveAll(workDirPath)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -128,6 +126,7 @@ func Run(distDir, downloadDir string) {
 	// 6. 不要になったZIPの削除
 	if _, err := os.Stat(localZipPath); err == nil {
 		if err := os.Remove(localZipPath); err != nil {
+			_ = os.RemoveAll(workDirPath)
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -137,6 +136,7 @@ func Run(distDir, downloadDir string) {
 	// 7. 配置（アップデートの適用）
 	if _, err := os.Stat(distDir); err == nil {
 		if err := os.RemoveAll(distDir); err != nil {
+			_ = os.RemoveAll(workDirPath)
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -145,12 +145,10 @@ func Run(distDir, downloadDir string) {
 
 	// ワークスペースを作業パスから distDir へ移動
 	if err := os.Rename(workDirPath, distDir); err != nil {
+		_ = os.RemoveAll(workDirPath)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-
-	// 移動成功のためクリーンアップフラグを解除
-	cleanupActive = false
 
 	fmt.Printf("Moved: \"%s\" to \"%s\"\n", workDirPath, distDir)
 	fmt.Printf("Updated: \"%s\"\n", distDir)
