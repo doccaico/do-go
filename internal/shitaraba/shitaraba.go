@@ -35,6 +35,13 @@ func Run(args []string) {
 		os.Exit(1)
 	}
 
+	// busybox64u が環境変数 PATH から見つかるかチェック
+	if _, err := exec.LookPath("busybox64u"); err != nil {
+		fmt.Fprintln(os.Stderr, "Error: 'busybox64u' is not installed or not found in PATH.")
+		fmt.Fprintln(os.Stderr, "Please install busybox64u and add it to your environment variables.")
+		os.Exit(1)
+	}
+
 	genre, id, number := args[0], args[1], args[2]
 	url := fmt.Sprintf("https://jbbs.shitaraba.net/bbs/read.cgi/%s/%s/%s/l50", genre, id, number)
 
