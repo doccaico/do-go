@@ -1,4 +1,4 @@
-package golang
+package ziglang
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 // Run はメイン（nightup）から呼び出されるエントリーポイントです
 func Run(distDir, downloadDir string) {
 	// 1. 最新バージョンのJSONを取得
-	req, err := http.NewRequest("GET", "https://go.dev/dl/?mode=json", nil)
+	req, err := http.NewRequest("GET", "https://ziglang.org/download/index.json", nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -34,27 +34,26 @@ func Run(distDir, downloadDir string) {
 		os.Exit(1)
 	}
 	contents := string(bodyBytes)
-	fmt.Println("Download (json) is done")
+	fmt.Println("Download (index.json) is done")
 
-	// 2. 正規表現で Windows 用の ZIP ファイル名を抽出
-	reUrl := regexp.MustCompile(`"filename":\s*"(go[0-9.]+\.windows-amd64\.zip)"`)
+	// 2. 正規表現で master の x86_64-windows 用の URL を抽出
+	// Goのregexpでドット（.）を改行にマッチさせるため、(?s) を使用します
+	reUrl := regexp.MustCompile(`(?s)"master":\s*\{.*?"x86_64-windows":\s*\{.*?"tarball":\s*"([^"]+)"`)
 	match := reUrl.FindStringSubmatch(contents)
 
-	var filename string
+	var downloadUrl string
 	if len(match) > 1 {
-		filename = match[1]
+		downloadUrl = match[1]
 	}
 
-	if filename == "" {
-		fmt.Fprintln(os.Stderr, "failed to find ZIP URL for go-windows-amd64")
+	if downloadUrl == "" {
+		fmt.Fprintln(os.Stderr, "failed to find ZIP URL for x86_64-windows master")
 		os.Exit(1)
 	}
-
-	downloadUrl := "https://go.dev/dl/" + filename
 	fmt.Println("Download URL:", downloadUrl)
 
 	// 3. 作業用ディレクトリの作成
-	workDirName := "go-latest-upgrade-working"
+	workDirName := "zig-master-upgrade-working"
 	workDirPath := filepath.Join(downloadDir, workDirName)
 
 	if _, err := os.Stat(workDirPath); err == nil {
@@ -99,7 +98,7 @@ func Run(distDir, downloadDir string) {
 		os.Exit(1)
 	}
 
-	localZip := "go-latest.zip"
+	localZip := "zig-master-latest.zip"
 	localZipPath := filepath.Join(workDirPath, localZip)
 	out, err := os.Create(localZipPath)
 	if err != nil {
@@ -113,10 +112,9 @@ func Run(distDir, downloadDir string) {
 		os.Exit(1)
 	}
 	out.Close()
-	fmt.Println("Download (ZIP) is done")
+	fmt.Printf("Download (ZIP) is done: %s\n", localZip)
 
-	// 5. 外部コマンド tar の実行（ご指定の方法）
-	// Windows10/11標準の bsdtar は tar -xf で .zip も透過的に解凍できます
+	// 5. 外部コマンド tar の実行
 	tarCmd := exec.Command("tar", "-xf", localZip, "--strip-components=1")
 	tarCmd.Dir = workDirPath
 	tarCmd.Stdout = os.Stdout

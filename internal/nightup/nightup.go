@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	golang "github.com/doccaico/do-go/internal/nightup/golang"
+	ziglang "github.com/doccaico/do-go/internal/nightup/ziglang"
 )
 
 const helpMsg = `
@@ -60,14 +61,14 @@ func Run(args []string) {
 
 	// 5. 各言語のアップデート処理への振り分け
 	switch args[0] {
-	// case "zig":
-	// 	if !section.HasKey("zig") {
-	// 		fmt.Fprintln(os.Stderr, `nightup ini: not found path: "zig"`)
-	// 		os.Exit(1)
-	// 	}
-	// 	distDir := section.Key("zig").String()
-	// 	zig.Run(distDir, downloadDir)
-	//
+	case "zig":
+		if !section.HasKey("zig") {
+			fmt.Fprintln(os.Stderr, `nightup ini: not found path: "zig"`)
+			os.Exit(1)
+		}
+		distDir := section.Key("zig").String()
+		ziglang.Run(distDir, downloadDir)
+
 	// case "odin":
 	// 	if !section.HasKey("odin") {
 	// 		fmt.Fprintln(os.Stderr, `nightup ini: not found path: "odin"`)
