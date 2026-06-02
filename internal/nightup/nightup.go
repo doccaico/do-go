@@ -8,6 +8,7 @@ import (
 
 	golang "github.com/doccaico/do-go/internal/nightup/golang"
 	odinlang "github.com/doccaico/do-go/internal/nightup/odinlang"
+	vim "github.com/doccaico/do-go/internal/nightup/vim"
 	vlang "github.com/doccaico/do-go/internal/nightup/vlang"
 	ziglang "github.com/doccaico/do-go/internal/nightup/ziglang"
 )
@@ -95,8 +96,8 @@ func Run(args []string) {
 		distDir := section.Key("go").String()
 		golang.Run(distDir, downloadDir) // パッケージ名は go_up
 
-	// case "vim":
-	// 	vim.Run("", downloadDir)
+	case "vim":
+		vim.Run()
 
 	default:
 		fmt.Fprintf(os.Stderr, "nightup: unknown command '%s'\n%s\n", args[0], helpMsg)

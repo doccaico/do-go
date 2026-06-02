@@ -94,7 +94,7 @@ func Run(distDir, downloadDir string) {
 	defer zipResp.Body.Close()
 
 	if zipResp.StatusCode != http.StatusOK {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "download failed with status: %s\n", zipResp.Status)
 		os.Exit(1)
 	}
 
