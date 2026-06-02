@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	golang "github.com/doccaico/do-go/internal/nightup/golang"
+	odinlang "github.com/doccaico/do-go/internal/nightup/odinlang"
 	ziglang "github.com/doccaico/do-go/internal/nightup/ziglang"
 )
 
@@ -69,14 +70,14 @@ func Run(args []string) {
 		distDir := section.Key("zig").String()
 		ziglang.Run(distDir, downloadDir)
 
-	// case "odin":
-	// 	if !section.HasKey("odin") {
-	// 		fmt.Fprintln(os.Stderr, `nightup ini: not found path: "odin"`)
-	// 		os.Exit(1)
-	// 	}
-	// 	distDir := section.Key("odin").String()
-	// 	odin.Run(distDir, downloadDir)
-	//
+	case "odin":
+		if !section.HasKey("odin") {
+			fmt.Fprintln(os.Stderr, `nightup ini: not found path: "odin"`)
+			os.Exit(1)
+		}
+		distDir := section.Key("odin").String()
+		odinlang.Run(distDir, downloadDir)
+
 	// case "v":
 	// 	if !section.HasKey("v") {
 	// 		fmt.Fprintln(os.Stderr, `nightup ini: not found path: "v"`)
